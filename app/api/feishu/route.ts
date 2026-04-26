@@ -1,24 +1,30 @@
 export const runtime = "edge";
 
+function json(data: unknown) {
+  return new Response(JSON.stringify(data), {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store",
+    },
+  });
+}
+
 export async function GET() {
-  return Response.json({ ok: true, service: "feishu webhook" });
+  return json({ ok: true, service: "feishu webhook" });
 }
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    const challenge =
-      body?.challenge ||
-      body?.event?.challenge ||
-      body?.data?.challenge;
-
-    if (challenge) {
-      return Response.json({ challenge });
+    // Feishu URL verification expects an immediate challenge echo.
+    if (body?.challenge) {
+      return json({ challenge: body.challenge });
     }
 
-    return Response.json({ ok: true });
+    return json({ ok: true });
   } catch {
-    return Response.json({ ok: true });
+    return json({ ok: true });
   }
 }
