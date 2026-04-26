@@ -1,29 +1,24 @@
+export const runtime = "edge";
+
+export async function GET() {
+  return Response.json({ ok: true, service: "feishu webhook" });
+}
+
 export async function POST(req: Request) {
   try {
-    const text = await req.text();   // 🔥 先拿原始数据
-    const body = JSON.parse(text);   // 再手动解析
+    const body = await req.json();
 
-    console.log("Feishu Event:", body);
+    const challenge =
+      body?.challenge ||
+      body?.event?.challenge ||
+      body?.data?.challenge;
 
-    // ✅ 飞书验证
-    if (body.challenge) {
-      return new Response(
-        JSON.stringify({ challenge: body.challenge }),
-        { headers: { "Content-Type": "application/json" } }
-      );
+    if (challenge) {
+      return Response.json({ challenge });
     }
 
-    return new Response(
-      JSON.stringify({ ok: true }),
-      { headers: { "Content-Type": "application/json" } }
-    );
-
-  } catch (e) {
-    console.error("Error:", e);
-
-    return new Response(
-      JSON.stringify({ ok: true }),
-      { headers: { "Content-Type": "application/json" } }
-    );
+    return Response.json({ ok: true });
+  } catch {
+    return Response.json({ ok: true });
   }
 }
